@@ -7,16 +7,22 @@ import api from '../../services/api'
 import CategoryItem from '../../components/CategoryItem'
 import { getFavorite, setFavorite } from '../../services/favorite'
 import FavoritePost from '../../components/FavoritePost'
+import PostItem from '../../components/PostItem'
 
 export default function Home(){
 
     const navigation = useNavigation();
     const [categories, setCategories] = useState([])
     const [favCategory, setFavCategory] = useState([])
+    const [posts, setPosts] = useState([])
     
     useEffect(() => {
 
+
         async function loadData(){
+
+            await getListPosts();
+
             const category = await api.get("/api/categories?populate=icon")
             setCategories(category.data.data)
         }
@@ -33,6 +39,12 @@ export default function Home(){
 
         favorite();
     }, []) 
+
+    //flat list vertical conteudos tela home
+    async function getListPosts(){
+        const response = await api.get("api/posts?populate=cover&sort=createdAt:desc")
+        setPosts(response.data.data)
+    }
 
     //favoritar uma categoria
     async function handleFavorite(id){
@@ -92,6 +104,16 @@ export default function Home(){
                     { marginTop: favCategory.length > 0 ? 14 : 46}
                     ]}
                     >Conteúdos em alta</Text>
+
+                    <FlatList
+                    //mostra os posts na tela home
+                    //propriedades
+                    style={{flex: 1, padding: 18 }}
+                    showsVerticalScrollIndicator={false}
+                    data={posts}
+                    keyExtractor={ (item) => String(item.id) }
+                    renderItem={({item})=> <PostItem data={item} />}
+                    />
 
             </View>
 
