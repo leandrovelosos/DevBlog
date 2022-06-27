@@ -1,17 +1,28 @@
 import React from 'react';
 import  { View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 export default function PostItem( {data} ){
+
+    const navigation = useNavigation();
+
+    //funcao para ir dos conteudos em alta ate a pagina de detalhes
+    function handleDetails(){
+        
+        navigation.navigate("Detail", { id: data?.id })
+    }
+
     return(
         <TouchableOpacity
         style={styles.container}
+        onPress={handleDetails}
         >
         
         <View styl={styles.header}>
             <Image
 
             style={styles.cover}
-            source={{uri: `http://10.211.113.236:1337${data?.attributes?.cover?.data?.attributes?.url}`}}
+            source={{uri: `http://10.211.113.250:1337${data?.attributes?.cover?.data?.attributes?.url}`}}
 
             />
         </View>
@@ -41,7 +52,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems:'center',
         flexDirection:'row',
-        backgroundColor: '#DCDCDC'
+        backgroundColor: '#FFFFFF',
+        //'#DCDCDC'
         
     },
     header:{
