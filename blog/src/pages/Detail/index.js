@@ -7,10 +7,13 @@ import {
     Image,
     TouchableOpacity,
     ScrollView,
+    Share,
+    Modal
 } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import api from '../../services/api'
-import { Feather } from '@expo/vector-icons'
+import { Feather, Entypo } from '@expo/vector-icons'
+import LinkWeb from '../../components/LinkWeb'
 
 export default function Detail() {
     const route = useRoute();
@@ -18,6 +21,10 @@ export default function Detail() {
 
     const [post, setPost] = useState({})
     const [links, setLinks] = useState([])
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [openLink, setOpenLink] = useState({})
+    
 
     useEffect(() => {
         async function getPost() {
@@ -28,14 +35,61 @@ export default function Detail() {
         }
 
         getPost();
+
     }, [])
+
+    useLayoutEffect(() => {
+
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={handleShare}>
+                    <Entypo name="share" size={25} color="#FFF" />
+                </TouchableOpacity>
+            )
+        })
+  
+    }, [navigation])
+
+   async function handleShare() {
+        try {
+            const result = await Share.share({
+                message: `
+                Confere esse post: ${post?.attributes?.title}
+
+                ${post?.attributes?.description}
+
+                Vi lá no app DevPost!
+                `
+            })
+
+            if(result.action === Share.sharedAction) {
+                if (result.activityType){
+                    console.log("ACTIVITY TYPE")
+                }else{
+                    console.log("COMPARTILHAADO COM SUCESSO")
+                }
+            }else if(result.action === Share.dismissedAction) {
+                console.log("MODAL FECHADO")
+            }
+
+        }catch (error){
+            console.log("Falha ao compartilhar conteudo, por favor tente novamente")
+
+        }
+    }
+
+
+    function handleOpenLink(link){
+        setModalVisible(true);
+        setOpenLink(link);
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             <Image
                 resizeMode='cover'
                 style={styles.cover}
-                source={{ uri: `http://10.211.113.250:1337${post?.attributes?.cover?.data?.attributes?.url}` }}
+                source={{ uri: `http://10.211.114.210:1337${post?.attributes?.cover?.data?.attributes?.url}` }}
             />
 
             {/*fora da scrollview desta forma o titulo fica fixo*/}
@@ -59,7 +113,9 @@ export default function Detail() {
                 {links.map(link => (
                     <TouchableOpacity
                         key={link.id}
-                        style={styles.linkButton}>
+                        style={styles.linkButton}
+                        onPress={() => handleOpenLink(link)}>
+
 
                         <Feather name="link" color="#1e4687" size={14} />
                         <Text style={styles.linkText}>
@@ -68,6 +124,14 @@ export default function Detail() {
                     </TouchableOpacity>
                 ))}
             </ScrollView>
+
+            <Modal animationType= "fade" visible={modalVisible} transparent={true}>
+                <LinkWeb 
+                link={openLink?.url}
+                title={openLink?.name}
+                closeModal={ () => setModalVisible(false)}
+                />
+            </Modal>
 
         </SafeAreaView>
     )
